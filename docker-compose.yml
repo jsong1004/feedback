@@ -8,13 +8,13 @@ services:
     ports:
       - "5432:5432"
     environment:
-      POSTGRES_USER: feedback_user
-      POSTGRES_PASSWORD: feedback_pass
-      POSTGRES_DB: feedback_dev
+      POSTGRES_USER: feedback
+      POSTGRES_PASSWORD: tXM97zGvUrAL5k4Vx3Q2bVuwm9xbU8Wc
+      POSTGRES_DB: feedback
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U feedback_user -d feedback_dev"]
+      test: ["CMD-SHELL", "pg_isready -U feedback -d feedback"]
       interval: 10s
       timeout: 5s
       retries: 5

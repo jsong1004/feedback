@@ -1,0 +1,112 @@
+// Mentorship Feedback Web Service - Database Schema
+// PostgreSQL database with Prisma ORM
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                    String               @id @default(uuid())
+  email                 String               @unique
+  googleId              String?              @unique
+  name                  String?
+  roles                 String[]             @default(["user"])
+  status                String               @default("active")
+  companyName           String?
+  description           String?
+  createdAt             DateTime             @default(now())
+  updatedAt             DateTime             @updatedAt
+
+  // Relations
+  organizedEvents       Event[]              @relation("EventOrganizer")
+  menteeAssignments     MenteeAssignment[]   @relation("MenteeUser")
+  mentorAssignments     MenteeAssignment[]   @relation("MentorUser")
+  menteeFeedback        FeedbackSubmission[] @relation("MenteeFeedback")
+  mentorFeedback        FeedbackSubmission[] @relation("MentorFeedback")
+
+  @@index([email])
+  @@index([roles])
+}
+
+model Event {
+  id                String               @id @default(uuid())
+  name              String
+  description       String?
+  startDate         DateTime
+  endDate           DateTime
+  organizerId       String
+  feedbackFormId    String
+  createdAt         DateTime             @default(now())
+  updatedAt         DateTime             @updatedAt
+
+  // Relations
+  organizer         User                 @relation("EventOrganizer", fields: [organizerId], references: [id], onDelete: Cascade)
+  feedbackForm      FeedbackForm         @relation(fields: [feedbackFormId], references: [id], onDelete: Restrict)
+  menteeAssignments MenteeAssignment[]
+  feedbackSubmissions FeedbackSubmission[]
+
+  @@index([organizerId])
+  @@index([startDate, endDate])
+}
+
+model FeedbackForm {
+  id                String               @id @default(uuid())
+  name              String
+  description       String?
+  questions         Json                 // Array of question objects: [{id, type, label, options, minRating, maxRating}]
+  createdBy         String?
+  createdAt         DateTime             @default(now())
+  updatedAt         DateTime             @updatedAt
+
+  // Relations
+  events            Event[]
+  submissions       FeedbackSubmission[]
+
+  @@index([createdBy])
+}
+
+model MenteeAssignment {
+  id          String   @id @default(uuid())
+  menteeId    String
+  mentorId    String
+  eventId     String
+  assignedAt  DateTime @default(now())
+
+  // Relations
+  mentee      User     @relation("MenteeUser", fields: [menteeId], references: [id], onDelete: Cascade)
+  mentor      User     @relation("MentorUser", fields: [mentorId], references: [id], onDelete: Cascade)
+  event       Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@unique([menteeId, mentorId, eventId])
+  @@index([menteeId])
+  @@index([mentorId])
+  @@index([eventId])
+}
+
+model FeedbackSubmission {
+  id               String       @id @default(uuid())
+  menteeId         String
+  mentorId         String
+  eventId          String
+  feedbackFormId   String
+  submissionDate   DateTime     @default(now())
+  answers          Json         // Map of questionId -> answer value
+  createdAt        DateTime     @default(now())
+
+  // Relations
+  mentee           User         @relation("MenteeFeedback", fields: [menteeId], references: [id], onDelete: Cascade)
+  mentor           User         @relation("MentorFeedback", fields: [mentorId], references: [id], onDelete: Cascade)
+  event            Event        @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  feedbackForm     FeedbackForm @relation(fields: [feedbackFormId], references: [id], onDelete: Restrict)
+
+  @@unique([menteeId, mentorId, eventId])
+  @@index([menteeId])
+  @@index([mentorId])
+  @@index([eventId])
+  @@index([submissionDate])
+}

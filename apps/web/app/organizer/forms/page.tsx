@@ -250,6 +250,7 @@ export default function OrganizerFormsPage() {
         onClose={() => setShowCreateDialog(false)}
         title="Create Feedback Form"
         size="lg"
+        disableClickOutside={!!editingQuestion}
       >
         <form onSubmit={handleCreate} className="space-y-6">
           <Input
@@ -342,6 +343,7 @@ export default function OrganizerFormsPage() {
         }}
         title="Edit Feedback Form"
         size="lg"
+        disableClickOutside={!!editingQuestion}
       >
         <form onSubmit={handleUpdate} className="space-y-6">
           <Input
@@ -465,7 +467,7 @@ function QuestionEditor({
   };
 
   return (
-    <Dialog open={true} onClose={onCancel} title="Edit Question" size="md">
+    <Dialog open={true} onClose={onCancel} title="Edit Question" size="md" zIndex={60}>
       <form onSubmit={handleSubmit} className="space-y-4">
         <Select
           id="type"

@@ -9,6 +9,8 @@ export interface DialogProps {
   title?: string;
   children: ReactNode;
   size?: "sm" | "md" | "lg" | "xl";
+  zIndex?: number;
+  disableClickOutside?: boolean;
 }
 
 const sizeClasses = {
@@ -18,7 +20,7 @@ const sizeClasses = {
   xl: "max-w-4xl",
 };
 
-export function Dialog({ open, onClose, title, children, size = "md" }: DialogProps) {
+export function Dialog({ open, onClose, title, children, size = "md", zIndex = 50, disableClickOutside = false }: DialogProps) {
   const dialogRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -31,29 +33,34 @@ export function Dialog({ open, onClose, title, children, size = "md" }: DialogPr
     };
 
     const handleClickOutside = (e: MouseEvent) => {
-      if (dialogRef.current && !dialogRef.current.contains(e.target as Node)) {
+      if (!disableClickOutside && dialogRef.current && !dialogRef.current.contains(e.target as Node)) {
         onClose();
       }
     };
 
     document.addEventListener("keydown", handleEscape);
-    document.addEventListener("mousedown", handleClickOutside);
+    if (!disableClickOutside) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
 
     // Prevent body scroll
     document.body.style.overflow = "hidden";
 
     return () => {
       document.removeEventListener("keydown", handleEscape);
-      document.removeEventListener("mousedown", handleClickOutside);
+      if (!disableClickOutside) {
+        document.removeEventListener("mousedown", handleClickOutside);
+      }
       document.body.style.overflow = "unset";
     };
-  }, [open, onClose]);
+  }, [open, onClose, disableClickOutside]);
 
   if (!open) return null;
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 animate-in fade-in duration-200"
+      className="fixed inset-0 flex items-center justify-center bg-black/50 animate-in fade-in duration-200"
+      style={{ zIndex }}
       role="dialog"
       aria-modal="true"
       aria-labelledby={title ? "dialog-title" : undefined}
